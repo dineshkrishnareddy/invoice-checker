@@ -10,7 +10,7 @@ credentials = boto3.Session().get_credentials()
 auth = AWSV4SignerAuth(credentials, region, service)
 
 client = OpenSearch(
-    hosts=[{'host': OPENSEARCH_INDEX, 'port': 443}],
+    hosts=[{'host': OPENSEARCH_HOST, 'port': 443}],
     http_auth=auth,
     use_ssl=True,
     verify_certs=True,
