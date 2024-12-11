@@ -3,8 +3,7 @@
 ### Prerequisites
 - pip install -r requirements.txt
 - AWS account setup
-    1) Create Opensearch domain in your AWS account and get the domain URL
-    2) Configure aws credentials locally with `aws configure` with 410627604197 account credentials
+    1) Configure aws credentials locally with `aws configure` with 410627604197 account credentials
 
 ### Exports to terminal
 ```

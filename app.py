@@ -1,7 +1,6 @@
 import streamlit as st
 from pdf_utils import extract_invoice_data
-from opensearch_utils import store_invoice_data
-from utils import check_duplicates, check_bulb_count
+from opensearch_utils import store_invoice_data, check_duplicates, check_bulb_count
 from bedrock_utils import summarize_invoice
 
 def main():

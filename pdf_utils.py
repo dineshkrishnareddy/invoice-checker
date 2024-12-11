@@ -1,10 +1,3 @@
-import camelot
-import io
-import re
-from datetime import datetime
-import tempfile
-import os
-import streamlit as st
 import PyPDF2
 import json
 from bedrock_utils import summarize
