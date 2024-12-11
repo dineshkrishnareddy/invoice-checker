@@ -2,19 +2,16 @@ from opensearchpy import OpenSearch, AWSV4SignerAuth, RequestsHttpConnection
 import boto3
 import os
 import streamlit as st
-from dotenv import load_dotenv
-
-load_dotenv()
+from config import OPENSEARCH_HOST, OPENSEARCH_INDEX
 
 # Configure OpenSearch client
 region = 'us-east-1'
 service = 'es'
-credentials = boto3.Session(profile_name=os.getenv('profile_name')).get_credentials()
+credentials = boto3.Session().get_credentials()
 auth = AWSV4SignerAuth(credentials, region, service)
-host = "search-dkrp-llm-example-ewed7oi2fgyuhyvpvnbqdgr4iq.aos.us-east-1.on.aws"
 
 client = OpenSearch(
-    hosts=[{'host': host, 'port': 443}],
+    hosts=[{'host': OPENSEARCH_INDEX, 'port': 443}],
     http_auth=auth,
     use_ssl=True,
     verify_certs=True,
@@ -25,7 +22,7 @@ client = OpenSearch(
 def store_invoice_data(invoice_data):
     # Store invoice data in OpenSearch, using VIN as primary key
     vin_number = invoice_data['vin']
-    index_name = "invoices"
+    index_name = OPENSEARCH_HOST
 
     document = {
         "vin": invoice_data['vin'],

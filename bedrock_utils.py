@@ -1,16 +1,47 @@
 import boto3
 import json
-import os
-import botocore.config
-from dotenv import load_dotenv
 import streamlit as st
+from config import CLAUDE_BEDROCK_MODEL_ARN, AWS_REGION
 
-load_dotenv()
-# configure Bedrock client
-boto3.setup_default_session(profile_name=os.getenv("profile_name"))
-config = botocore.config.Config(connect_timeout=120, read_timeout=120)
-bedrock_client = boto3.client('bedrock-runtime', 'us-east-1', endpoint_url='https://bedrock-runtime.us-east-1.amazonaws.com',
-                       config=config)
+bedrock_client = boto3.client('bedrock-runtime', AWS_REGION, endpoint_url='https://bedrock-runtime.us-east-1.amazonaws.com')
+
+
+def bedrock_summarizer(prompt_data) -> str:
+    """
+    This function creates the summary of each individual chunk as well as the final summary.
+    :param prompt_data: This is the prompt along with the respective chunk of text, at the end it contains all summary chunks combined.
+    :return: A summary of the respective chunk of data passed in or the final summary that is a summary of all summary chunks.
+    """
+    # setting the key parameters to invoke Amazon Bedrock
+    # body of data with parameters that is passed into the bedrock invoke model request
+    # TODO: TUNE THESE PARAMETERS AS YOU SEE FIT
+    prompt = {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1000,
+        "temperature": 0.5,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt_data
+                    }
+                ]
+            }
+        ]
+    }
+    # formatting the prompt as a json string
+    json_prompt = json.dumps(prompt)
+    # invoking Claude3, passing in our prompt
+    response = bedrock_client.invoke_model(body=json_prompt, modelId=CLAUDE_BEDROCK_MODEL_ARN,
+                                    accept="application/json", contentType="application/json")
+    # getting the response from Claude3 and parsing it to return to the end user
+    response_body = json.loads(response.get('body').read())
+    # the final string returned to the end user
+    answer = response_body['content'][0]['text']
+    # returning the final string to the end user
+    return answer
 
 def summarize_invoice(invoice_data):
     # Create a prompt with invoice details to summarize
@@ -43,71 +74,8 @@ def summarize_invoice(invoice_data):
     Summaries: {invoice_data}
             \n\nAssistant:"""
     
-    prompt = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1000,
-        "temperature": 0.5,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": prompt_data
-                    }
-                ]
-            }
-        ]
-    }
-    # formatting the prompt as a json string
-    json_prompt = json.dumps(prompt)
-    # invoking Claude3, passing in our prompt
-    response = bedrock_client.invoke_model(body=json_prompt, modelId="anthropic.claude-3-haiku-20240307-v1:0",
-                                    accept="application/json", contentType="application/json")
-    # getting the response from Claude3 and parsing it to return to the end user
-    response_body = json.loads(response.get('body').read())
-    # the final string returned to the end user
-    answer = response_body['content'][0]['text']
-    # returning the final string to the end user
-    return answer
+    return bedrock_summarizer(prompt_data)
 
-
-def bedrock_summarizer(prompt_data) -> str:
-    """
-    This function creates the summary of each individual chunk as well as the final summary.
-    :param prompt_data: This is the prompt along with the respective chunk of text, at the end it contains all summary chunks combined.
-    :return: A summary of the respective chunk of data passed in or the final summary that is a summary of all summary chunks.
-    """
-    # setting the key parameters to invoke Amazon Bedrock
-    # body of data with parameters that is passed into the bedrock invoke model request
-    # TODO: TUNE THESE PARAMETERS AS YOU SEE FIT
-    prompt = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1000,
-        "temperature": 0.5,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": prompt_data
-                    }
-                ]
-            }
-        ]
-    }
-    # formatting the prompt as a json string
-    json_prompt = json.dumps(prompt)
-    # invoking Claude3, passing in our prompt
-    response = bedrock_client.invoke_model(body=json_prompt, modelId="anthropic.claude-3-haiku-20240307-v1:0",
-                                    accept="application/json", contentType="application/json")
-    # getting the response from Claude3 and parsing it to return to the end user
-    response_body = json.loads(response.get('body').read())
-    # the final string returned to the end user
-    answer = response_body['content'][0]['text']
-    # returning the final string to the end user
-    return answer
 
 
 def summarize(text) -> str:
